@@ -53,8 +53,15 @@ library(tmap)
 library(ggiraph)
 options(scipen = 999)
 
+#s <- Sys.getenv("PIPELINE_VERSION")
+s <- '0.0.2'
+
+log_info(paste0("Versión de los análisis: ",s))
+
 ```
 
+
+<p> Versión de los análisis: `r paste0(s)` </p>
 
 ```{r}
 mapa_area_212 <- read_sf('AREA_ESP_4258.shp')
@@ -332,17 +339,17 @@ plot_evo_temp_area <- function(ind){
     p[[ind]][[1]] <- plot
     
     rate_dsr2 <- rate_dsr %>% group_by(año) %>% mutate(p50 = median(te,na.rm=TRUE),
-                                                                     p05 = quantile(te,0.05,na.rm=TRUE),
-                                                                     p95 = quantile(te,0.95,na.rm=TRUE))
+                                                                     p25 = quantile(te,0.25,na.rm=TRUE),
+                                                                     p75 = quantile(te,0.75,na.rm=TRUE))
     plot <- ggplot(data=rate_dsr2, aes(x=factor(año), y=te, group = año)) +
-    geom_ribbon(aes(ymin = p05, ymax = p95,group =d_regires_new),fill = "grey70", alpha = 0.3) +
+    geom_ribbon(aes(ymin = p25, ymax = p75,group =d_regires_new),fill = "grey70", alpha = 0.3) +
     geom_point(size=0.7, alpha = 0.3) +
     geom_line(aes(x=factor(año),y=p50,group =d_regires_new,color='P50')) + 
     labs(#title = paste0('Serie temporal: ',lista_indicadores_$descrip),
         x = '',
         y = 'Tasa estandarizada procedimientos x10.000 habitantes') +facet_wrap(~d_regires_new,ncol = 4,scales = 'free_y') +
     theme_minimal() + scale_color_manual(name = "",values = c(
-    'P50' = 'firebrick')) +
+    'P50' = 'firebrick')) + 
       scale_x_discrete(breaks=seq(2003, 2021, by = 3))+
     theme(plot.title = element_text(size=10),axis.text.x = element_text(angle=90,size=10),legend.position = 'none')
     p[[ind]][[2]] <- plot
