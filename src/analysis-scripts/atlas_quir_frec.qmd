@@ -1,0 +1,1292 @@
+---
+title: "AtlasVPM - Análisis de variaciones en cirugías frecuentes (SNS)"
+lang: es
+author:
+  - name: Atlas de variaciones injustificadas de la práctica médica (Atlas VPM)
+    affiliations:
+      - name: "[Ciencia de datos para la Investigación en Servicios y Políticas de Salud](https://cienciadedatosysalud.org/)"
+      - name: Instituto Aragonés de Ciencias de la Salud (IACS)
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 4
+    highlight-style: pygments
+    code-fold: true
+    html-math-method: katex
+    grid:
+      body-width: 1100px
+execute: 
+  echo: false
+  warning: false
+  cache: false
+---
+
+
+```{css, echo = FALSE}
+.justify {
+  text-align: justify !important
+}
+```
+
+
+```{r}
+#| label: cargar paquetes
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(Hmisc)
+library(gt)
+library(logger)
+library(epoxy)
+library(cowplot)
+library(plotly)
+library(ggrepel)
+library(scales)
+library(readr)
+library(stringr)
+library(duckdb)
+library(tmap)
+library(ggiraph)
+options(scipen = 999)
+
+
+s <- '0.0.3'
+
+log_info(paste0("Versión de los análisis: ",s))
+
+```
+
+
+<p> Versión de los análisis: `r paste0(s)` </p>
+
+```{r}
+mapa_area_212 <- read_sf('AREA_ESP_4258.shp')
+
+poblacion_212 <- read.csv(file = '2016_2021poblacion_area.csv',sep=',',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","idn212_new" = "character","regires_new" = "character","d_regires_new" = "character","care212_new" = "character","prov" = "character","lareama212" = "character","genero" = "character","gqe" = "character")) %>% rename(año = year,sexo=genero,lareama=lareama212,idn212_old = idn212)
+poblacion_203 <- read.csv(file = '2003_2015poblacion_area.csv',sep=',',colClasses=c("regi_new"="character", "regi_old" = "character","care203" = "character","idn203" = "character","idn203_new" = "character","regires_new" = "character","d_regires_new" = "character","care203_new" = "character","prov" = "character","lareama203" = "character","genero" = "character","gqe" = "character")) %>% rename(año = year,sexo=genero,lareama=lareama203,idn203_old = idn203)
+
+
+pobla_2022 <- read.csv(file='PoblacionArea2016_2022.csv',sep='|',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","genero" = "character","gqe" = "character"))  %>% rename(año = any,sexo=genero,idn212_old = idn212)
+
+pobla_2022_1 <- pobla_2022 %>% filter(año %in% 2022) 
+
+pobla_2022_2 <- pobla_2022 %>% filter(año <= 2021) 
+
+
+pobla_212_21 <- poblacion_212 %>% filter(año %in% 2021) %>% dplyr::select(!c(año,pobla))
+
+poblacion_212_22 <- left_join(pobla_2022_1,pobla_212_21)
+
+poblacion_212_ <- poblacion_212 %>% dplyr::select(!pobla)
+poblacion_212_ <- left_join(pobla_2022_2,poblacion_212_[])
+
+poblacion_212 <- rbind(poblacion_212_,poblacion_212_22)
+
+conversion <- poblacion_212[!duplicated(poblacion_212$idn212_old),]
+mapa_area_212 <- left_join(mapa_area_212,conversion[c('idn212_new','idn212_old')],by=c('IDN'='idn212_old'))
+rm(conversion)
+
+```
+
+
+```{r}
+#| label: evolucion temporal 
+
+
+poblacion_referencia1 <- poblacion_212 %>% group_by(año,sexo,gqe) %>% summarise(n_poblacion = sum(pobla,na.rm = TRUE))
+poblacion_referencia2 <- poblacion_203 %>% group_by(año,sexo,gqe) %>% summarise(n_poblacion = sum(pobla,na.rm = TRUE))
+poblacion_referencia <- rbind(poblacion_referencia1,poblacion_referencia2)
+rm(poblacion_referencia1,poblacion_referencia2)
+
+
+
+df_ccaa <- data.frame(
+  stringsAsFactors = FALSE,
+  ccaa = c("01","02","03","04","05",
+               "06","07","08","09","10","11",
+               "12","13","14","15","16","17",
+               "18"),
+  ccaa_iso2 = c("AN","AR","AS","IB","CN",
+                "CB","CL","CM","CT","VC","EX",
+                "GA","MD","MC","NC","PV","RI",
+                "IG"),
+  comunidad_autonoma = c("Andalucía","Aragón",
+                         "Principado de Asturias",
+                         "Illes Balears","Canarias","Cantabria",
+                         "Castilla y León","Castilla - La Mancha",
+                         "Cataluña","Comunidad Valenciana",
+                         "Extremadura","Galicia",
+                         "Comunidad de Madrid","Región de Murcia",
+                         "Comunidad Foral de Navarra",
+                         "País Vasco","La Rioja","Ingesa"))
+
+lista_indicadores <- data.frame(indicador = c("cataratas","hernia_inguinal_femoral","protesis_cadera","artroscopias","varices", "colecistectomia", "quiste_pilonidal","amigdalectomia_adenoidectomia","prostatectomias", "tunel_carpiano","protesis_rodilla","histerectomia", "hallux_valgus"),
+                                descrip = c("Cataratas","Hernia inguinal/femoral","Prótesis de cadera","Artroscopias","Varices MM. II.", "Colecistectomía", "Quiste pilonidal","Adeno-amigdalectomía","Prostatectomía", "Túnel carpiano","Prótesis de rodilla","Histerectomía", "Hallux valgus"),
+                                valor = c(1,3,12,2,7,9,13,11,5,10,6,4,8))
+
+
+lista_indicadores <- lista_indicadores[order(lista_indicadores$valor,decreasing = FALSE),]
+
+plot_evo_temp_ccaa <- function(ind){
+    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+
+    if(ind =='prostatectomias'){
+    data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+    poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
+    }else{
+      if(ind =='histerectomia'){
+        data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+        poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
+      }else{
+            data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
+            poblacion_referencia_ <- poblacion_referencia
+      }
+    }
+
+    dbDisconnect(con, shutdown=TRUE)
+    data$año <- as.numeric(data$año)
+    
+    #### 203 áreas ####
+    data1 <- data %>% filter(año <= 2015)
+    data1 <- data1 %>% group_by(año,idn203_new,gqe,sexo) %>% summarise(casos = n())
+    data1 <- left_join(x=data1,y=poblacion_203[c('año','idn203_old','sexo','gqe','lareama','pobla','idn203_new','regires_new','d_regires_new')],by=c('año','idn203_new','sexo','gqe'))
+    data1 <- data1 %>% filter(!is.na(pobla))
+    
+        ### tasa (*10000 habitantes) ####
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion))
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    data_clean <- data1 %>% filter(pobla >0) 
+    data_clean <- data_clean %>% group_by(año,gqe,sexo,d_regires_new,regires_new) %>% summarise(casos = sum(casos),
+                                                                                    pobla = sum(pobla))
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr1 <- data_clean %>% group_by(año,regires_new,d_regires_new) %>% summarise(te = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    
+    
+    
+    
+    
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion)) %>% 
+      filter(año %in% 2003)
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    
+    data_clean <- data1 %>% filter(pobla >0) 
+    data_clean <- data_clean %>% group_by(año,gqe,sexo,d_regires_new,regires_new) %>% summarise(casos = sum(casos),
+                                                                                    pobla = sum(pobla))
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("gqe","sexo","st_pop")],by=c("gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr_ref1 <- data_clean %>% group_by(año,regires_new,d_regires_new) %>% summarise(te_ref = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    
+    
+    
+    #### 212 áreas ####
+    data2 <- data %>% filter(año > 2015)
+    data2 <- data2 %>% group_by(año,idn212_new,gqe,sexo) %>% summarise(casos = n())
+    data2 <- left_join(x=data2,y=poblacion_212[c('año','idn212_old','sexo','gqe','lareama','pobla','idn212_new','regires_new','d_regires_new')],by=c('año','idn212_new','sexo','gqe'))
+    data2 <- data2 %>% filter(!is.na(pobla))
+    
+    
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion))
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    data_clean <- data2 %>% filter(pobla >0) 
+    data_clean <- data_clean %>% group_by(año,gqe,sexo,d_regires_new,regires_new) %>% summarise(casos = sum(casos),
+                                                                                    pobla = sum(pobla))
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr2 <- data_clean %>% group_by(año,regires_new,d_regires_new) %>% summarise(te = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    
+    
+    
+    
+    
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion)) %>% 
+      filter(año %in% 2003)
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    
+    data_clean <- data2 %>% filter(pobla >0) 
+    data_clean <- data_clean %>% group_by(año,gqe,sexo,d_regires_new,regires_new) %>% summarise(casos = sum(casos),
+                                                                                    pobla = sum(pobla))
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("gqe","sexo","st_pop")],by=c("gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr_ref2 <- data_clean %>% group_by(año,regires_new,d_regires_new) %>% summarise(te_ref = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    
+    
+    
+    
+    
+    
+    rate_dsr <- rbind(rate_dsr1,rate_dsr2)
+    
+    rate_dsr_ref <- rbind(rate_dsr_ref1,rate_dsr_ref2)
+    
+    lista_indicadores_ <- lista_indicadores %>% filter(indicador %in% ind)
+    
+    ### Quitamos Andalucía ####
+    
+    rate_dsr <- rate_dsr %>% filter(d_regires_new %nin% 'Andalucía')
+    #####
+    
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% group_by(año) %>% mutate(mean_te = mean(te,na.rm=TRUE))
+    
+    
+    
+    ### Quitamos Andalucía ####
+    
+    rate_dsr_ref <- rate_dsr_ref %>% filter(d_regires_new %nin% 'Andalucía')
+    #####
+    
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2020))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2020))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2021))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2021))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% 2021))
+    rate_dsr_ref <- rate_dsr_ref %>% group_by(año) %>% mutate(mean_te_ref = mean(te_ref,na.rm=TRUE))
+    rate_dsr <- left_join(rate_dsr,rate_dsr_ref,by=c('año','d_regires_new','regires_new','casos','pobla'))
+    
+    plot <- ggplot(rate_dsr,aes(x = factor(año), y=te,tooltip = paste("Año:", año, "\nT.E.:", round(te,2),"\nT.E.(ref):", round(te_ref,2),"\nMedia T.E.(ref):", round(mean_te_ref,2)))) +
+      geom_point_interactive(size=0.0) +
+      geom_line(aes(group =d_regires_new),linetype=3) +
+      geom_line(aes(x=factor(año), y=te_ref,group =d_regires_new),color = 'black') +
+      geom_line(aes(x=factor(año), y=mean_te_ref, group =d_regires_new),color='firebrick',linetype=2) +
+      labs(#title = paste0('Serie temporal: ',lista_indicadores_$descrip),
+       y = 'Tasa estandarizada procedimientos x10.000 habitantes',
+       x = '',
+       color=NULL) + facet_wrap_interactive(~d_regires_new,ncol = 4) +
+      theme_minimal() +
+      scale_x_discrete(breaks=seq(2003, 2022, by = 3))+
+      theme(plot.title = element_text(size=10),legend.position = 'bottom',
+            legend.text = element_text(size=8),axis.text.x = element_text(angle=90,size = 8),
+            axis.text.y = element_text(size = 8),strip.text = element_text(size=8))
+    plot <- girafe(ggobj = plot)
+    
+    
+    return(plot)  
+  
+}
+
+plot_temp_ccaa <- lapply(lista_indicadores$indicador, plot_evo_temp_ccaa)
+
+
+
+p <- list()
+plot_evo_temp_area <- function(ind){
+    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+
+
+    if(ind =='prostatectomias'){
+    data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+    poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
+    }else{
+      if(ind =='histerectomia'){
+        data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+        poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
+      }else{
+            data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
+            poblacion_referencia_ <- poblacion_referencia
+      }
+    }
+
+    dbDisconnect(con, shutdown=TRUE)
+    data$año <- as.numeric(data$año)
+    #### 203 áreas ####
+    data1 <- data %>% filter(año <= 2015)
+    data1 <- data1 %>% group_by(año,idn203_new,gqe,sexo) %>% summarise(casos = n())
+    data1 <- left_join(x=data1,y=poblacion_203[c('año','idn203_old','sexo','gqe','lareama','pobla','idn203_new','regires_new','d_regires_new')],by=c('año','idn203_new','sexo','gqe'))
+    data1 <- data1 %>% filter(!is.na(pobla))
+        ### tasa (*10000 habitantes) ####
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion))
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    data_clean <- data1 %>% filter(pobla >0)
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr1 <- data_clean %>% group_by(año,idn203_new,regires_new,d_regires_new) %>% summarise(te = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    rate_dsr1$idn212_new <- NA
+
+    #### 212 áreas ####
+    data2 <- data %>% filter(año > 2015)
+    data2 <- data2 %>% group_by(año,idn212_new,gqe,sexo) %>% summarise(casos = n())
+    data2 <- left_join(x=data2,y=poblacion_212[c('año','idn212_old','sexo','gqe','lareama','pobla','idn212_new','regires_new','d_regires_new')],by=c('año','idn212_new','sexo','gqe'))
+    data2 <- data2 %>% filter(!is.na(pobla))
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion))
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    data_clean <- data2 %>% filter(pobla >0)
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr2 <- data_clean %>% group_by(año,idn212_new,regires_new,d_regires_new) %>% summarise(te = round(sum(st_pop * rate),4),
+                                                              casos= sum(casos,na.rm=TRUE),
+                                                              pobla = sum(pobla,na.rm=TRUE))
+    data2$idn203_new <- NA
+    rate_dsr <- rbind(rate_dsr1,rate_dsr2)
+    lista_indicadores_ <- lista_indicadores %>% filter(indicador %in% ind)
+    
+    
+    ### Quitamos Andalucía ####
+    
+    rate_dsr <- rate_dsr %>% filter(d_regires_new %nin% 'Andalucía')
+    #####
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% 2021))
+    rate_dsr1 <- rate_dsr %>% group_by(año) %>% mutate(mean_te = mean(te,na.rm=TRUE))
+    plot <- ggplot(data=rate_dsr1, aes(x=factor(año), y=te, group = año)) +
+        geom_boxplot_interactive(
+    aes(
+      x=factor(año), y=te,
+      group = año,
+      tooltip = after_stat({
+        paste0(
+          "\nQ1: ", round(.data$ymin,2),
+          "\nQ3: ", round(.data$ymax,2),
+          "\nMediana: ",round(.data$middle,2)
+        )
+      })),width=0.4)+
+      geom_violin(trim = FALSE, color = 'black', alpha = 0.4) + 
+      labs(#title = paste0('Serie temporal: ',lista_indicadores_$descrip),
+           x = '',
+           y = 'Tasa estandarizada procedimientos x10.000 habitantes') +
+      theme_minimal() +
+      theme(plot.title = element_text(size=10),legend.position = 'bottom',legend.text = element_text(size=10))
+    plot <- girafe(ggobj = plot)
+    p[[ind]][[1]] <- plot
+    
+    rate_dsr2 <- rate_dsr %>% group_by(año) %>% mutate(p50 = median(te,na.rm=TRUE),
+                                                                     p25 = quantile(te,0.25,na.rm=TRUE),
+                                                                     p75 = quantile(te,0.75,na.rm=TRUE))
+    plot <- ggplot(data=rate_dsr2, aes(x=factor(año), y=te, group = año)) +
+    geom_ribbon(aes(ymin = p25, ymax = p75,group =d_regires_new),fill = "grey70", alpha = 0.3) +
+    geom_point(size=0.7, alpha = 0.3) +
+    geom_line(aes(x=factor(año),y=p50,group =d_regires_new,color='P50')) + 
+    labs(#title = paste0('Serie temporal: ',lista_indicadores_$descrip),
+        x = '',
+        y = 'Tasa estandarizada procedimientos x10.000 habitantes') +facet_wrap(~d_regires_new,ncol = 4,scales = 'free_y') +
+    theme_minimal() + scale_color_manual(name = "",values = c(
+    'P50' = 'firebrick')) + 
+      scale_x_discrete(breaks=seq(2003, 2022, by = 3))+
+    theme(plot.title = element_text(size=10),axis.text.x = element_text(angle=90,size=10),legend.position = 'none')
+    p[[ind]][[2]] <- plot
+    return(p)
+}
+
+plot_temp_area <- lapply(lista_indicadores$indicador, plot_evo_temp_area)
+
+
+plot_evo_mapas_area <- function(ind){
+    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+
+    if(ind =='prostatectomias'){
+    data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1) and año IN (2017,2018,2019,2020,2021,2022)"))
+    poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
+    }else{
+      if(ind =='histerectomia'){
+        data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2) and año IN (2017,2018,2019,2020,2021,2022)"))
+        poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
+      }else{
+            data <- dbGetQuery(conn = con,
+                  paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         ",ind,"
+                         FROM main.listas_quirurgicas WHERE ",ind," == true and año IN (2017,2018,2019,2020,2021,2022)"))
+            poblacion_referencia_ <- poblacion_referencia
+      }
+    }
+
+    dbDisconnect(con, shutdown=TRUE)
+    data$año <- as.numeric(data$año)
+
+    #### 212 áreas ####
+    data2 <- data %>% filter(año > 2016)
+    data2 <- data2 %>% group_by(año,idn212_new,gqe,sexo) %>% summarise(casos = n())
+    data2 <- left_join(x=data2,y=poblacion_212[c('año','idn212_old','sexo','gqe','lareama','pobla','idn212_new','regires_new','d_regires_new')],by=c('año','idn212_new','sexo','gqe'))
+    data2 <- data2 %>% filter(!is.na(pobla))
+    poblacion_ref <- poblacion_referencia_ %>% group_by(año) %>% mutate(total = sum(n_poblacion))
+    poblacion_ref <- poblacion_ref %>% mutate(st_pop = (n_poblacion/total))
+    data_clean <- data2 %>% filter(pobla >0)
+    data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
+    data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
+    rate_dsr <- data_clean %>% group_by(año,idn212_new,regires_new,d_regires_new) %>% 
+      summarise(te = round(sum(st_pop * rate),4),
+                casos= sum(casos,na.rm=TRUE),
+                pobla = sum(pobla,na.rm=TRUE))
+
+    lista_indicadores_ <- lista_indicadores %>% filter(indicador %in% ind)
+    
+    
+        
+    ### Quitamos Andalucía ####
+    
+    rate_dsr <- rate_dsr %>% filter(d_regires_new %nin% 'Andalucía')
+    #####
+    
+    
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2020))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Galicia' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% 2021))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% 2021))
+    mapa <- left_join(mapa_area_212,rate_dsr[c('idn212_new','año','te')],by='idn212_new')
+    mapa <- mapa %>% filter(!is.na(te))
+
+tmap::tmap_options(check.and.fix = TRUE)
+
+sf_use_s2(FALSE)
+
+    plot <- mapa %>%
+              tm_shape() +
+              tm_facets(by = "año", free.scales = TRUE,showNA = FALSE) +
+              tm_polygons(title='Tasa estandarizada procedimientos x10.000 habitantes',col = "te", style = "quantile",            palette = c('#ffffd4', '#fed98e', '#fe9929', '#d95f0e', '#993404'),group = 'año',
+              legend.format = list(text.separator='-')) +
+              tm_borders("gray70", lwd = 0.0) +
+              tm_layout(legend.outside = FALSE,legend.show = TRUE,
+              legend.position = c("right", "bottom"), inner.margins = c(0.01, 0.01, .12, .25),
+              panel.label.bg.color = "white")
+    return(plot)
+}
+
+plot_temp_mapas_area <- lapply(lista_indicadores$indicador, plot_evo_mapas_area)
+
+
+
+
+```
+
+## Resumen ejecutivo
+::: {.justify}
+
+1. El rango de la variación observada en la tasas estandarizas por área sanitaria en el conjunto del SNS permanece estable a lo largo del tiempo. 
+2. La amplitud de las diferencias en actividad quirúrgica programada en estos procesos entre comunidades autónomas no parecen justificarse por diferencias en la carga de enfermedad de la población residente en cada comunidad autónoma. 
+3. La variación observada en las tasas estandarizadas por área sanitaria en cada comunidad autónoma son mayores que las diferencias observadas entre comunidades autónomas, y no parecen justificarse por diferencias en la carga de enfermedad de la población residente en cada área. 
+4. Se observan patrones geográficos y temporales de variación en la utilización de estos procesos a nivel de área sanitaria en el conjunto de las comunidades autónomas participantes en el análisis. Estos patrones están pendientes de un estudio más detallado de las componentes espacial y temporal. 
+
+::: {.callout-note icon=false}
+#### **Conclusión**
+**Las variaciones observadas en la programación y realización de estos procedimientos no parecen obedecer a factores de la demanda (i.e., necesidades diferenciales de la población residente en cada área en función de la distribución de carga de enfermedad) sino a factores de la oferta (i.e., propensión a la indicación, propensión a la programación de estas intervenciones y/o planificación de la oferta quirúrgica programada).**
+:::
+
+
+
+:::
+
+
+## Introducción
+::: {.justify}
+
+Este informe del Atlas de Variaciones de la Práctica Médica describe la variación en la utilización de un conjunto de procedimientos quirúrgicos programados (cirugía electiva) en las 212 áreas sanitarias de residencia, que corresponden a la organizacion territorial del Sistema Nacional de Salud (SNS) exceptuando las ciudades autónomas de Ceuta y Melilla (INGESA).
+En los resultados se presenta la evolución de la variación por área sanitaria a lo largo del tiempo a nivel del SNS y la CCAA; y la variación geográfica a nivel de área sanitaria para cada uno de los procedimientos seleccionados.
+El objetivo de este AtlasVPM es explorar la evolución temporal de las variaciones geográficas en la indicación y realización de un conjunto seleccionado de procedimientos quirúrgicos electivos a nivel de área sanitaria para el conjunto de las comunidades autónomas (CCAA) participantes.
+Estos procedimientos quirúrgicos electivos se han seleccionado a partir de aquellas cirugías consideradas de especial interés para su información y monitorización por los sistemas de información de listas de espera quirúrgica del SNS.
+
+:::
+
+
+## Resultados
+
+
+### `r lista_indicadores$descrip[1]`
+
+::: {.column-margin}
+
+
+**Figura 1** (**Evolución temporal (SNS)**): es interactiva (colocar cursor sobre la caja). En ella vemos un violin con una caja interior por año para todo el sistema nacional de salud donde la unidad de análisis es el área sanitaria.\n
+
+
+**Figura 2** (**Serie temporal (CCAA)**): es interactiva (colocar cursor sobre línea *dotted* negra). En ella vemos una línea *dotted* negra, una línea sólida negra y otra línea *dashed* roja:
+
+  - <span style="color:Black;">(Línea *dotted*) Tasa estándar de cada CCAA utilizando para cada año la población de referencia nacional respectiva a dicho año</span>.
+
+  - <span style="color:Black;">(Línea sólida) Tasa estándar de cada CCAA utilizando para cada año la población de referencia nacional del primer año de estudio (2003)</span>.
+
+  - <span style="color:Firebrick;">(Línea *dashed*) Media nacional de las CCAA utilizando para cada año la población de referencia nacional del primer año de estudio (2003)</span>.\n
+
+
+**Figura 3** (**Evolución variación (Área sanitaria)**): muestra la evolución de la variación en cada CCAA, donde cada punto es un área sanitaria. En ella vemos: 
+
+  - <span style="color:Firebrick;">Mediana nacional (Q2) de todas las áreas sanitarias</span>
+  
+  - <span style="color:Gray40;">Rango intercuartílico (Q1-Q3) de todas las áreas sanitarias</span>.\n
+  
+*Los límites en el eje Y son libres por lo que pueden variar para cada CCAA.*
+
+
+**Figura 4** (**Variación geográfica (Área sanitaria)**): muestra la variación anual quintilizada de las áreas sanitarias mediante mapas. 
+:::
+
+
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[1]][[lista_indicadores$indicador[1]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[1]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+
+plot_temp_area[[1]][[lista_indicadores$indicador[1]]][[2]]
+
+```
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[1]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[2]`
+
+::: {.panel-tabset}
+
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[2]][[lista_indicadores$indicador[2]]][[1]]
+
+```
+
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[2]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[2]][[lista_indicadores$indicador[2]]][[2]]
+
+```
+
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[2]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[3]`
+
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[3]][[lista_indicadores$indicador[3]]][[1]]
+
+```
+
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[3]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[3]][[lista_indicadores$indicador[3]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[3]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[4]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[4]][[lista_indicadores$indicador[4]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[4]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[4]][[lista_indicadores$indicador[4]]][[2]]
+
+```
+
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[4]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[5]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[5]][[lista_indicadores$indicador[5]]][[1]]
+
+```
+
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[5]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[5]][[lista_indicadores$indicador[5]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[5]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[6]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[6]][[lista_indicadores$indicador[6]]][[1]]
+
+```
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[6]]
+
+```
+
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[6]][[lista_indicadores$indicador[6]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[6]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[7]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[7]][[lista_indicadores$indicador[7]]][[1]]
+
+```
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[7]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[7]][[lista_indicadores$indicador[7]]][[2]]
+
+```
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[7]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[8]`
+
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[8]][[lista_indicadores$indicador[8]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[8]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[8]][[lista_indicadores$indicador[8]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[8]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[9]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[9]][[lista_indicadores$indicador[9]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[9]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[9]][[lista_indicadores$indicador[9]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[9]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[10]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[10]][[lista_indicadores$indicador[10]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[10]]
+
+```
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[10]][[lista_indicadores$indicador[10]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[10]]
+
+```
+:::
+
+### `r lista_indicadores$descrip[11]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[11]][[lista_indicadores$indicador[11]]][[1]]
+
+```
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[11]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[11]][[lista_indicadores$indicador[11]]][[2]]
+
+```
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[11]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[12]`
+
+::: {.panel-tabset}
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=6}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[12]][[lista_indicadores$indicador[12]]][[1]]
+
+```
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[12]]
+
+```
+
+
+
+#### Evolución variación (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[12]][[lista_indicadores$indicador[12]]][[2]]
+
+```
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[12]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[13]`
+
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=8}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[13]][[lista_indicadores$indicador[13]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[13]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[13]][[lista_indicadores$indicador[13]]][[2]]
+
+```
+
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[13]]
+
+```
+:::
+
+
+
+
+
+## Notas metodológicas
+::: {.justify}
+
+Los procedimientos seleccionados para estudio se corresponden con los procesos incluidos en el Anexo IV del Real Decreto 605/2003, de 23 de mayo, por el que se establecen medidas para el tratamiento homogéneo de la información sobre las listas de espera en el Sistema Nacional de Salud [RD 605/2003](https://www.boe.es/eli/es/rd/2003/05/23/605/con) para todos los indicadores excepto prótesis de rodilla y histerectomía que aparecen en [RD 1039/2011](https://www.boe.es/eli/es/rd/2011/07/15/1039).
+
+:::
+
+### Fuente de datos
+Los episodios correspondientes a los procedimientos de cirugía programada se extrajeron del Conjunto Mínimo Básico de Datos al Alta Hospitalaria (CMBD-AH) de las Comunidades Autónomas (CCAA) participantes en el Proyecto Atlas VPM durante el período 2003-2022. Los datos los CMBDs de Andalucía en toda la serie, Galicia en los años 2016 a 2022, Castilla-León en los años 2019 a 2022, y Cataluña en los años 2021 y 2022 no han estado disponibles para la ejecución de este análisis.
+
+### Sobre el numerador
+
+::: {.justify}
+
+Para el cálculo de los indicadores por proceso quirúrgico se contabilizaron todas las altas en hospitales del Sistema Nacional de Salud más las altas financiadas públicamente en los centros de titularidad privada - allá donde esta información estuviera disponible. Respecto a estas últimas (actividad bajo concierto), hay que tener en consideración que la información sobre las mismas se recoge de forma irregular entre Comunidades Autónomas. Este hecho puede influir en que los indicadores de utilización presenten tasas relativamente más altas en las áreas sanitarias donde el uso de proveedores privados financiados públicamente sea mayor o la notificación de este tipo de actividad sea más detallada, o por el contrario, generar tasas menores en áreas con menor contribución del sector privado o sub-notificación de casos. 
+En el año 2016 entró en vigor a nivel nacional la nueva clasificación de diagnósticos y procedimientos CIE-10-MC-ES, reemplazando la CIE-9-MC-ES utilizada previamente. La transición entre ambos tipos de codificación no ha sido homogénea en todas las comunidades autónomas, ni en los hospitales dentro de cada comunidad, lo que ha originado que en los primeros años de utilización de CIE-10, no se haya alcanzado el 100% de cobertura en la codificación de episodios en algunos hospitales. Este hecho puede influir en la modificación de la tendencia observada en la utilización de algunos procedimientos quirúrgicos a partir de 2016. 
+Por otra parte, el cambio en la codificación ha obligado a traducir los indicadores previamente definidos con códigos CIE-9, a códigos CIE-10. La nueva clasificación supone un cambio cualitativo (_i.e., mayor especificidad_) y cuantitativo (_i.e., disminución relativa de la codificación de diagnósticos secundarios y procedimientos_) en la codificación, por lo que la traducción se ha realizado para conseguir la equivalencia semántica entre las dos clasificaciones. En cualquier caso, la observación de la evolución de las tasas parece descartar en la mayoría de los procesos estudiados que la traducción esté afectando a los resultados de este Atlas.
+
+:::
+
+### Sobre el denominador
+
+::: {.justify}
+
+Los episodios se asignan al área de residencia del paciente y se computan con independencia del hospital, área o comunidad autónoma en la que se produce la hospitalización. De esta manera, el análisis realizado compara la exposición de las poblaciones a la asistencia sanitaria según su lugar de residencia, antes que las pautas de ingreso de los hospitales (i.e., propensión a hospitalización), aunque unas y otras están asociadas.
+La población utilizada en la estandarización y cálculo de los denominadores de los indicadores procede de la actualización anual de los padrones municipales publicados por el Instituto Nacional de Estadística (INE) entre los años 2003 a 2022.
+
+
+:::
+
+### Sobre la unidad de análisis
+
+::: {.justify}
+La unidad de análisis en este informe son las áreas sanitarias de referencia según residencia de los pacientes intervenidos. 
+
+
+:::
+
+
+### Sobre los resultados analizados
+
+::: {.justify}
+Este informe se centra en el cálculo de las tasas estandarizadas para cada proceso tomando como referencia la población española (por sexo y grupo de quinquenal de edad) para cada año en el periodo de estudio.
+
+:::
+
+
+## Contribuciones
+
+
+## Referencias
+
+
+
+
+
