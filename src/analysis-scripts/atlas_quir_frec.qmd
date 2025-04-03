@@ -52,9 +52,116 @@ library(ggiraph)
 options(scipen = 999)
 
 #s <- Sys.getenv("PIPELINE_VERSION")
-s <- '0.0.3'
+s <- '0.0.4'
 
 log_info(paste0("Versión de los análisis: ",s))
+
+
+main_query <- "select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2003 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2004 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2005 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2006 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2007 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2008 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2009 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2010 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2011 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2012 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2013 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2014 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2015 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2016 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2017 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2018 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2019 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2020 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2021 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2022 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )
+     UNION ALL select id_episodio,cen_san,circont,idn203,idn212,sexo,gqe,cataratas,hernia_inguinal_femoral,protesis_cadera,artroscopias,varices,
+colecistectomia,quiste_pilonidal,amigdalectomia_adenoidectomia,prostatectomias,tunel_carpiano,protesis_rodilla,histerectomia,
+hallux_valgus,cirugia_valvular,year(COALESCE(fecinicont::DATE,fecinghosp::DATE, fecint::DATE))::VARCHAR as año_fecha, año from main.datos_2023 where (cataratas or hernia_inguinal_femoral 
+or protesis_cadera or artroscopias or varices or colecistectomia or quiste_pilonidal or
+amigdalectomia_adenoidectomia or prostatectomias or tunel_carpiano or protesis_rodilla or histerectomia or hallux_valgus or cirugia_valvular )"
 
 ```
 
@@ -64,25 +171,62 @@ log_info(paste0("Versión de los análisis: ",s))
 ```{r}
 mapa_area_212 <- read_sf('AREA_ESP_4258.shp')
 #mapa_area_203 <- read_sf('a203o.shp')
-poblacion_212 <- read.csv(file = '2016_2021poblacion_area.csv',sep=',',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","idn212_new" = "character","regires_new" = "character","d_regires_new" = "character","care212_new" = "character","prov" = "character","lareama212" = "character","genero" = "character","gqe" = "character")) %>% rename(año = year,sexo=genero,lareama=lareama212,idn212_old = idn212)
+# poblacion_212 <- read.csv(file = '2016_2021poblacion_area.csv',sep=',',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","idn212_new" = "character","regires_new" = "character","d_regires_new" = "character","care212_new" = "character","prov" = "character","lareama212" = "character","genero" = "character","gqe" = "character")) %>% rename(año = year,sexo=genero,lareama=lareama212,idn212_old = idn212)
 poblacion_203 <- read.csv(file = '2003_2015poblacion_area.csv',sep=',',colClasses=c("regi_new"="character", "regi_old" = "character","care203" = "character","idn203" = "character","idn203_new" = "character","regires_new" = "character","d_regires_new" = "character","care203_new" = "character","prov" = "character","lareama203" = "character","genero" = "character","gqe" = "character")) %>% rename(año = year,sexo=genero,lareama=lareama203,idn203_old = idn203)
 
 
-pobla_2022 <- read.csv(file='PoblacionArea2016_2022.csv',sep='|',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","genero" = "character","gqe" = "character"))  %>% rename(año = any,sexo=genero,idn212_old = idn212)
+# pobla_2022 <- read.csv(file='PoblacionArea2016_2022.csv',sep='|',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","genero" = "character","gqe" = "character"))  %>% rename(año = any,sexo=genero,idn212_old = idn212)
+# 
+# pobla_2023 <- read.csv(file='PoblacionArea_INE2016_2023.csv',sep='|',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212" = "character","care203" = "character","idn203" = "character","genero" = "character","gqe" = "character"))  %>% rename(año = any,sexo=genero,idn212_old = idn212)
 
-pobla_2022_1 <- pobla_2022 %>% filter(año %in% 2022) 
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '1'] <- "01"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '2'] <- "02"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '3'] <- "03"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '4'] <- "04"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '5'] <- "05"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '6'] <- "06"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '7'] <- "07"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '8'] <- "08"
+# pobla_2023$regi_new[pobla_2023$regi_new %in% '9'] <- "09"
+# 
+# ### 2022 ###
+# 
+# pobla_2022_1 <- pobla_2022 %>% filter(año %in% 2022) 
+# 
+# pobla_2022_2 <- pobla_2022 %>% filter(año <= 2021) 
+# 
+# pobla_212_21 <- poblacion_212 %>% filter(año %in% 2021) %>% dplyr::select(!c(año,pobla))
+# 
+# poblacion_212_22 <- left_join(pobla_2022_1,pobla_212_21)
+# 
+# poblacion_212_ <- poblacion_212 %>% dplyr::select(!pobla)
+# 
+# poblacion_212_ <- left_join(pobla_2022_2,poblacion_212_[])
+# 
+# poblacion_212 <- rbind(poblacion_212_,poblacion_212_22)
+# 
+# 
+# ### 2023 ###
+# 
+# 
+# pobla_2022_1 <- pobla_2023 %>% filter(año %in% 2023) 
+# 
+# pobla_2022_2 <- pobla_2023 %>% filter(año <= 2022) 
+# 
+# pobla_212_21 <- poblacion_212 %>% filter(año %in% 2022) %>% dplyr::select(!c(año,pobla))
+# 
+# poblacion_212_22 <- left_join(pobla_2022_1,pobla_212_21)
+# 
+# poblacion_212_ <- poblacion_212 %>% dplyr::select(!pobla)
+# 
+# poblacion_212_ <- left_join(pobla_2022_2,poblacion_212_[])
+# 
+# poblacion_212 <- rbind(poblacion_212_,poblacion_212_22)
+# 
+# 
+# write.table(poblacion_212,'PoblacionArea_INE2016_2023_added_columns.csv',sep='|',row.names = FALSE)
 
-pobla_2022_2 <- pobla_2022 %>% filter(año <= 2021) 
-
-
-pobla_212_21 <- poblacion_212 %>% filter(año %in% 2021) %>% dplyr::select(!c(año,pobla))
-
-poblacion_212_22 <- left_join(pobla_2022_1,pobla_212_21)
-
-poblacion_212_ <- poblacion_212 %>% dplyr::select(!pobla)
-poblacion_212_ <- left_join(pobla_2022_2,poblacion_212_[])
-
-poblacion_212 <- rbind(poblacion_212_,poblacion_212_22)
+poblacion_212 <- read.csv('PoblacionArea_INE2016_2023_added_columns.csv',sep='|',colClasses=c("regi_new"="character", "regi_old" = "character","care212" = "character","idn212_old" = "character","care203" = "character","idn203" = "character","idn212_new" = "character","regires_new" = "character","d_regires_new" = "character","care212_new" = "character","prov" = "character","lareama" = "character","sexo" = "character","gqe" = "character"))
 
 conversion <- poblacion_212[!duplicated(poblacion_212$idn212_old),]
 mapa_area_212 <- left_join(mapa_area_212,conversion[c('idn212_new','idn212_old')],by=c('IDN'='idn212_old'))
@@ -122,9 +266,9 @@ df_ccaa <- data.frame(
                          "Comunidad Foral de Navarra",
                          "País Vasco","La Rioja","Ingesa"))
 
-lista_indicadores <- data.frame(indicador = c("cataratas","hernia_inguinal_femoral","protesis_cadera","artroscopias","varices", "colecistectomia", "quiste_pilonidal","amigdalectomia_adenoidectomia","prostatectomias", "tunel_carpiano","protesis_rodilla","histerectomia", "hallux_valgus"),
-                                descrip = c("Cataratas","Hernia inguinal/femoral","Prótesis de cadera","Artroscopias","Varices MM. II.", "Colecistectomía", "Quiste pilonidal","Adeno-amigdalectomía","Prostatectomía", "Túnel carpiano","Prótesis de rodilla","Histerectomía", "Hallux valgus"),
-                                valor = c(1,3,12,2,7,9,13,11,5,10,6,4,8))
+lista_indicadores <- data.frame(indicador = c("cataratas","hernia_inguinal_femoral","protesis_cadera","artroscopias","varices", "colecistectomia", "quiste_pilonidal","amigdalectomia_adenoidectomia","prostatectomias", "tunel_carpiano","protesis_rodilla","histerectomia", "hallux_valgus","cirugia_valvular","bypass"),
+                                descrip = c("Cataratas","Hernia inguinal/femoral","Prótesis de cadera","Artroscopias","Varices MM. II.", "Colecistectomía", "Quiste pilonidal","Adeno-amigdalectomía","Prostatectomía", "Túnel carpiano","Prótesis de rodilla","Histerectomía", "Hallux valgus","Cirugía Valvular","By-pass coronario"),
+                                valor = c(1,3,12,2,7,9,13,11,5,10,6,4,8,14,15))
 
 
 lista_indicadores <- lista_indicadores[order(lista_indicadores$valor,decreasing = FALSE),]
@@ -137,7 +281,7 @@ poblacion_203_ <- poblacion_203 %>% distinct(idn203_new,año,regires_new,d_regir
 poblacion_212_ <- poblacion_212 %>% distinct(idn212_new,año,regires_new,d_regires_new) %>%
       dplyr::select(idn212_new,año,regires_new,d_regires_new)
 perc_cont_evo <- function(ind){
-  con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+  con = dbConnect(duckdb::duckdb(), dbdir='resultados_listasqV3/resultados_listasqV3.duckdb', read_only=TRUE)
 
     if(ind =='prostatectomias'){
     data <- dbGetQuery(conn = con,
@@ -148,7 +292,7 @@ perc_cont_evo <- function(ind){
                          idn212 as idn212_new,
                          año,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (1)"))
     }else{
       if(ind =='histerectomia'){
         data <- dbGetQuery(conn = con,
@@ -159,8 +303,19 @@ perc_cont_evo <- function(ind){
                          idn212 as idn212_new,
                          año,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (2)"))
       }else{
+        if(ind == 'bypass'){
+          data <- dbGetQuery(conn=con,
+                             paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         tpiq05,
+                         from main.datos_bypass_2003_2023 where tpiq05 ==true"))
+        }else{
             data <- dbGetQuery(conn = con,
                   paste0("SELECT id_episodio,
                          cen_san,
@@ -169,8 +324,8 @@ perc_cont_evo <- function(ind){
                          idn212 as idn212_new,
                          año,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
-      }
+                         from (",main_query,") WHERE ",ind," == true"))
+      }}
     }
 
     dbDisconnect(con, shutdown=TRUE)
@@ -203,7 +358,7 @@ df_csv <- lapply(lista_indicadores$indicador, perc_cont_evo)
 
 
 tabla_perc_conteo <- rbind(df_csv[[1]],df_csv[[2]],df_csv[[3]],df_csv[[4]],df_csv[[5]],df_csv[[6]],df_csv[[7]],df_csv[[8]],
-                df_csv[[9]],df_csv[[10]],df_csv[[11]],df_csv[[12]],df_csv[[13]])
+                df_csv[[9]],df_csv[[10]],df_csv[[11]],df_csv[[12]],df_csv[[13]],df_csv[[14]],df_csv[[15]])
 
 
 total_casos <- read.csv('registros_programados_2003_2022.csv',sep='|',colClasses = c(ccaa='character'))
@@ -217,7 +372,7 @@ write.table(tabla_perc_conteo,'tabla_porcentaje_cir_freq_ccaa_año.csv',sep='|',
 
 df_csv <- data.frame()
 csv_evo_temp_area <- function(ind){
-    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+    con = dbConnect(duckdb::duckdb(), dbdir='resultados_listasqV3/resultados_listasqV3.duckdb', read_only=TRUE)
 
 
     if(ind =='prostatectomias'){
@@ -231,7 +386,7 @@ csv_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (1)"))
     poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
     }else{
       if(ind =='histerectomia'){
@@ -245,9 +400,23 @@ csv_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (2)"))
         poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
       }else{
+        if(ind == 'bypass'){
+          data <- dbGetQuery(conn=con,
+                             paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         tpiq05,
+                         from main.datos_bypass_2003_2023 where tpiq05 ==true"))
+          poblacion_referencia_ <- poblacion_referencia
+        }else{
             data <- dbGetQuery(conn = con,
                   paste0("SELECT id_episodio,
                          cen_san,
@@ -258,10 +427,10 @@ csv_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
+                         from (",main_query,") WHERE ",ind," == true"))
             poblacion_referencia_ <- poblacion_referencia
       }
-    }
+    }}
 
     dbDisconnect(con, shutdown=TRUE)
     data$año <- as.numeric(data$año)
@@ -337,7 +506,7 @@ csv_evo_temp_area <- function(ind){
 df_csv <- lapply(lista_indicadores$indicador, csv_evo_temp_area)
 
 df_csv <- rbind(df_csv[[1]],df_csv[[2]],df_csv[[3]],df_csv[[4]],df_csv[[5]],df_csv[[6]],df_csv[[7]],df_csv[[8]],
-                df_csv[[9]],df_csv[[10]],df_csv[[11]],df_csv[[12]],df_csv[[13]])
+                df_csv[[9]],df_csv[[10]],df_csv[[11]],df_csv[[12]],df_csv[[13]],df_csv[[14]],df_csv[[15]])
 rv_5_95_csv <- df_csv %>% filter(año %in% 2022) %>%
   group_by(regires_new,d_regires_new,indicator) %>% summarise(p50 = median(te,na.rm=TRUE),
                            p25 = quantile(te,0.25,na.rm=TRUE),
@@ -361,7 +530,7 @@ write.table(df_csv,'tabla_cir_freq_area.csv',sep='|',row.names=FALSE)
 
 
 plot_evo_temp_ccaa <- function(ind){
-    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+    con = dbConnect(duckdb::duckdb(), dbdir='resultados_listasqV3/resultados_listasqV3.duckdb', read_only=TRUE)
 
     if(ind =='prostatectomias'){
     data <- dbGetQuery(conn = con,
@@ -374,7 +543,7 @@ plot_evo_temp_ccaa <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+                         FROM (",main_query,") WHERE ",ind," == true and sexo IN (1)"))
     poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
     }else{
       if(ind =='histerectomia'){
@@ -388,9 +557,23 @@ plot_evo_temp_ccaa <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (2)"))
         poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
       }else{
+        if(ind == 'bypass'){
+          data <- dbGetQuery(conn=con,
+                             paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         tpiq05,
+                         from main.datos_bypass_2003_2023 where tpiq05 ==true"))
+          poblacion_referencia_ <- poblacion_referencia
+        }else{
             data <- dbGetQuery(conn = con,
                   paste0("SELECT id_episodio,
                          cen_san,
@@ -401,9 +584,9 @@ plot_evo_temp_ccaa <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
+                         from (",main_query,") WHERE ",ind," == true"))
             poblacion_referencia_ <- poblacion_referencia
-      }
+      }}
     }
 
     dbDisconnect(con, shutdown=TRUE)
@@ -526,8 +709,9 @@ plot_evo_temp_ccaa <- function(ind){
     #####
     
     
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022)))
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Asturias (Principado de)' & año %in% c(2023)))
     rate_dsr <- rate_dsr %>% group_by(año) %>% mutate(mean_te = mean(te,na.rm=TRUE))
     
     
@@ -538,10 +722,17 @@ plot_evo_temp_ccaa <- function(ind){
     rate_dsr_ref <- rate_dsr_ref %>% filter(d_regires_new %nin% 'Galicia')
     #####
     
-    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022)))
-    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022)))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022,2023)))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022,2023)))
+    rate_dsr_ref <- rate_dsr_ref %>% filter(!(d_regires_new %in% 'Asturias (Principado de)' & año %in% c(2023)))
     rate_dsr_ref <- rate_dsr_ref %>% group_by(año) %>% mutate(mean_te_ref = mean(te_ref,na.rm=TRUE))
     rate_dsr <- left_join(rate_dsr,rate_dsr_ref,by=c('año','d_regires_new','regires_new','casos','pobla'))
+    
+    write.table(rate_dsr,
+            file = paste0('./plots/ccaa/',ind,'.csv'),
+            sep = "|",
+            row.names = FALSE, # No incluir los nombres de las filas
+            quote = FALSE) 
     
     plot <- ggplot(rate_dsr,aes(x = factor(año), y=te,tooltip = paste("Año:", año, "\nT.E.:", round(te,2),"\nT.E.(ref):", round(te_ref,2),"\nMedia T.E.(ref):", round(mean_te_ref,2)))) +
             geom_rect(aes(xmin = factor(2016), xmax = factor(2017), ymin = -Inf, ymax = Inf, 
@@ -558,7 +749,7 @@ plot_evo_temp_ccaa <- function(ind){
        x = '',
        color=NULL) + facet_wrap_interactive(~d_regires_new,ncol = 4) +
       theme_minimal() +
-      scale_x_discrete(breaks=seq(2003, 2022, by = 3))+
+      scale_x_discrete(breaks=seq(2003, 2023, by = 2))+
       theme(plot.title = element_text(size=10),legend.position = 'bottom',
             legend.text = element_text(size=8),axis.text.x = element_text(angle=90,size = 8),
             axis.text.y = element_text(size = 8),strip.text = element_text(size=8))
@@ -574,7 +765,7 @@ plot_temp_ccaa <- lapply(lista_indicadores$indicador, plot_evo_temp_ccaa)
 
 p <- list()
 plot_evo_temp_area <- function(ind){
-    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+    con = dbConnect(duckdb::duckdb(), dbdir='resultados_listasqV3/resultados_listasqV3.duckdb', read_only=TRUE)
 
 
     if(ind =='prostatectomias'){
@@ -588,7 +779,7 @@ plot_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (1)"))
     poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
     }else{
       if(ind =='histerectomia'){
@@ -602,9 +793,23 @@ plot_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (2)"))
         poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
       }else{
+        if(ind == 'bypass'){
+          data <- dbGetQuery(conn=con,
+                             paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         tpiq05,
+                         from main.datos_bypass_2003_2023 where tpiq05 ==true"))
+          poblacion_referencia_ <- poblacion_referencia
+        }else{
             data <- dbGetQuery(conn = con,
                   paste0("SELECT id_episodio,
                          cen_san,
@@ -615,9 +820,9 @@ plot_evo_temp_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true"))
+                         from (",main_query,") WHERE ",ind," == true"))
             poblacion_referencia_ <- poblacion_referencia
-      }
+      }}
     }
 
     dbDisconnect(con, shutdown=TRUE)
@@ -692,12 +897,25 @@ plot_evo_temp_area <- function(ind){
     rate_dsr <- rate_dsr %>% filter(d_regires_new %nin% 'Galicia')
     #####
     
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022)))
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Asturias (Principado de)' & año %in% c(2023)))
     rate_dsr1 <- rate_dsr %>% group_by(año) %>% mutate(p50 = median(te,na.rm=TRUE),
                                                                      p25 = quantile(te,0.25,na.rm=TRUE),
                                                                      p75 = quantile(te,0.75,na.rm=TRUE)) %>% ungroup()
-
+    
+    write.table(rate_dsr1,
+            file = paste0('./plots/area/',ind,'.csv'),
+            sep = "|",
+            row.names = FALSE, # No incluir los nombres de las filas
+            quote = FALSE)
+    
+    write.table(rate_dsr1,
+            file = paste0('./plots/sns/',ind,'.csv'),
+            sep = "|",
+            row.names = FALSE, # No incluir los nombres de las filas
+            quote = FALSE) 
+    
     plot <- ggplot(data=rate_dsr1, aes(x=factor(año), y=te)) +
         geom_boxplot_interactive(
     aes(
@@ -731,7 +949,7 @@ plot_evo_temp_area <- function(ind){
         y = 'Tasa estandarizada procedimientos x10.000 habitantes') +facet_wrap(~d_regires_new,ncol = 4,scales = 'free_y') +
     theme_minimal() + scale_color_manual(name = "",values = c(
     'P50' = 'firebrick')) + 
-      scale_x_discrete(breaks=seq(2003, 2022, by = 3))+
+      scale_x_discrete(breaks=seq(2003, 2023, by = 2))+
     theme(plot.title = element_text(size=10),axis.text.x = element_text(angle=90,size=10),legend.position = 'none')
     p[[ind]][[2]] <- plot
     return(p)
@@ -740,7 +958,7 @@ plot_temp_area <- lapply(lista_indicadores$indicador, plot_evo_temp_area)
 
 
 plot_evo_mapas_area <- function(ind){
-    con = dbConnect(duckdb::duckdb(), dbdir='listas_quirurgicas/listas_quirurgicas_db.duckdb', read_only=TRUE)
+    con = dbConnect(duckdb::duckdb(), dbdir='resultados_listasqV3/resultados_listasqV3.duckdb', read_only=TRUE)
 
     if(ind =='prostatectomias'){
     data <- dbGetQuery(conn = con,
@@ -753,7 +971,7 @@ plot_evo_mapas_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (1) and año IN (2017,2018,2019,2020,2021,2022)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (1) and año IN (2018,2019,2020,2021,2022,2023)"))
     poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '1')
     }else{
       if(ind =='histerectomia'){
@@ -767,9 +985,24 @@ plot_evo_mapas_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and sexo IN (2) and año IN (2017,2018,2019,2020,2021,2022)"))
+                         from (",main_query,") WHERE ",ind," == true and sexo IN (2) and año IN (2018,2019,2020,2021,2022,2023)"))
         poblacion_referencia_ <- poblacion_referencia %>% filter(sexo %in% '2')
       }else{
+        
+        if(ind == 'bypass'){
+          data <- dbGetQuery(conn=con,
+                             paste0("SELECT id_episodio,
+                         cen_san,
+                         circont,
+                         idn203 as idn203_new,
+                         idn212 as idn212_new,
+                         año,
+                         sexo,
+                         gqe,
+                         tpiq05,
+                         from main.datos_bypass_2003_2023 where tpiq05 ==true"))
+          poblacion_referencia_ <- poblacion_referencia
+        }else{
             data <- dbGetQuery(conn = con,
                   paste0("SELECT id_episodio,
                          cen_san,
@@ -780,9 +1013,9 @@ plot_evo_mapas_area <- function(ind){
                          sexo,
                          gqe,
                          ",ind,"
-                         FROM main.listas_quirurgicas WHERE ",ind," == true and año IN (2017,2018,2019,2020,2021,2022)"))
+                         from (",main_query,") WHERE ",ind," == true and año IN (2018,2019,2020,2021,2022,2023)"))
             poblacion_referencia_ <- poblacion_referencia
-      }
+      }}
     }
 
     dbDisconnect(con, shutdown=TRUE)
@@ -815,7 +1048,7 @@ plot_evo_mapas_area <- function(ind){
     data_clean <- data2 %>% filter(pobla >0)
     data_clean <- left_join(x=data_clean, y = poblacion_ref[c("año","gqe","sexo","st_pop")],by=c("año","gqe","sexo"))
     data_clean <- data_clean %>% mutate(rate = (10000*(casos)/(pobla)))
-    rate_dsr <- data_clean %>% group_by(año,idn212_new,regires_new,d_regires_new) %>% 
+    rate_dsr <- data_clean %>% group_by(año,idn212_new,idn212_old,regires_new,d_regires_new) %>% 
       summarise(te = round(sum(st_pop * rate),4),
                 casos= sum(casos,na.rm=TRUE),
                 pobla = sum(pobla,na.rm=TRUE))
@@ -831,16 +1064,24 @@ plot_evo_mapas_area <- function(ind){
     #####
     
     rate_dsr <- rate_dsr %>% filter(año > 2016)
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022)))
-    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Castilla y León' & año %in% c(2019,2020,2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Cataluña' & año %in% c(2021,2022,2023)))
+    rate_dsr <- rate_dsr %>% filter(!(d_regires_new %in% 'Asturias (Principado de)' & año %in% c(2023)))
     mapa_ <- data.frame()
-    años <- 2017:2022
+    años <- 2018:2023
     mapa_df <- do.call("rbind", replicate(length(años), mapa_area_212, simplify = FALSE))
     mapa_df$año <- rep(años, each = nrow(mapa_area_212))
     # for(i in 2017:2022){
     #   mapa_area_212$año <- i
     #   mapa_ <- rbind(mapa_,mapa_area_212)
     # }
+    
+    write.table(rate_dsr,
+            file = paste0('./plots/mapa/',ind,'.csv'),
+            sep = "|",
+            row.names = FALSE, # No incluir los nombres de las filas
+            quote = FALSE) 
+    
     mapa <- left_join(mapa_df,rate_dsr[c('idn212_new','año','te')],by=c('idn212_new','año'))
     #mapa <- mapa %>% filter(!is.na(te))
 
@@ -890,7 +1131,7 @@ plot_temp_mapas_area <- lapply(lista_indicadores$indicador, plot_evo_mapas_area)
 ## Introducción
 ::: {.justify}
 
-Este informe del Atlas de Variaciones de la Práctica Médica describe la variación en la utilización de un conjunto de procedimientos quirúrgicos programados (cirugía electiva) en las 212 áreas sanitarias de residencia, que corresponden a la organizacion territorial del Sistema Nacional de Salud (SNS) exceptuando las ciudades autónomas de Ceuta y Melilla (INGESA).
+Este informe del Atlas de Variaciones de la Práctica Médica describe la variación en la utilización de un conjunto de procedimientos quirúrgicos programados (cirugía electiva) en las 212 áreas sanitarias de residencia, que corresponden a la organización territorial del Sistema Nacional de Salud (SNS) exceptuando las ciudades autónomas de Ceuta y Melilla (INGESA).
 En los resultados se presenta la evolución de la variación por área sanitaria a lo largo del tiempo a nivel del SNS y la CCAA; y la variación geográfica a nivel de área sanitaria para cada uno de los procedimientos seleccionados.
 El objetivo de este AtlasVPM es explorar la evolución temporal de las variaciones geográficas en la indicación y realización de un conjunto seleccionado de procedimientos quirúrgicos electivos a nivel de área sanitaria para el conjunto de las comunidades autónomas (CCAA) participantes.
 Estos procedimientos quirúrgicos electivos se han seleccionado a partir de aquellas cirugías consideradas de especial interés para su información y monitorización por los sistemas de información de listas de espera quirúrgica del SNS.
@@ -1568,17 +1809,112 @@ plot_temp_mapas_area[[13]]
 **N.B.**: Las siguientes comunidades autónomas no tienen CMA en los primeros años de estudio: Balears (Illes), Canarias, Murcia y La Rioja.
 
 
+### `r lista_indicadores$descrip[14]`
 
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=8}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[14]][[lista_indicadores$indicador[14]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[14]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[14]][[lista_indicadores$indicador[14]]][[2]]
+
+```
+
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[14]]
+
+```
+:::
+
+
+### `r lista_indicadores$descrip[15]`
+
+::: {.panel-tabset}
+
+
+#### Evolucion temporal (SNS)
+
+```{r,fig.width=10, fig.height=8}
+#| fig-cap: 
+#|   - "Figura 1"
+
+plot_temp_area[[15]][[lista_indicadores$indicador[15]]][[1]]
+
+```
+
+
+#### Serie temporal (CCAA)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 2"
+
+plot_temp_ccaa[[15]]
+
+```
+
+
+#### Evolución variación (Área sanitaria) 
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 3"
+plot_temp_area[[15]][[lista_indicadores$indicador[15]]][[2]]
+
+```
+
+
+
+#### Variación geográfica (Área sanitaria)
+
+```{r,fig.width=10, fig.height=13}
+#| fig-cap: 
+#|   - "Figura 4"
+plot_temp_mapas_area[[15]]
+
+```
+:::
 
 ## Notas metodológicas
 ::: {.justify}
 
-Los procedimientos seleccionados para estudio se corresponden con los procesos incluidos en el Anexo IV del Real Decreto 605/2003, de 23 de mayo, por el que se establecen medidas para el tratamiento homogéneo de la información sobre las listas de espera en el Sistema Nacional de Salud [RD 605/2003](https://www.boe.es/eli/es/rd/2003/05/23/605/con) para todos los indicadores excepto prótesis de rodilla y histerectomía que aparecen en [RD 1039/2011](https://www.boe.es/eli/es/rd/2011/07/15/1039).
+Los procedimientos seleccionados para estudio se corresponden con los procesos incluidos en el Anexo IV del Real Decreto 605/2003, de 23 de mayo, por el que se establecen medidas para el tratamiento homogéneo de la información sobre las listas de espera en el Sistema Nacional de Salud [RD 605/2003](https://www.boe.es/eli/es/rd/2003/05/23/605/con) para todos los indicadores excepto prótesis de rodilla e histerectomía que aparecen en [RD 1039/2011](https://www.boe.es/eli/es/rd/2011/07/15/1039).
 
 :::
 
 ### Fuente de datos
-Los episodios correspondientes a los procedimientos de cirugía programada se extrajeron del Conjunto Mínimo Básico de Datos al Alta Hospitalaria (CMBD-AH) de las Comunidades Autónomas (CCAA) participantes en el Proyecto Atlas VPM durante el período 2003-2022. Los datos los CMBDs de Andalucía y Galicia en toda la serie, Castilla-León en los años 2019 a 2022, y Cataluña en los años 2021 y 2022 no han estado disponibles para la ejecución de este análisis.
+Los episodios correspondientes a los procedimientos de cirugía programada se extrajeron del Conjunto Mínimo Básico de Datos al Alta Hospitalaria (CMBD-AH) de las Comunidades Autónomas (CCAA) participantes en el Proyecto Atlas VPM durante el período 2003-2023. Los datos los CMBDs de Andalucía y Galicia en toda la serie, Castilla-León en los años 2019 a 2023, Cataluña en los años 2021 a 2023 y Asturias en 2023 no han estado disponibles para la ejecución de este análisis.
 
 ### Sobre el numerador
 
@@ -1595,7 +1931,7 @@ Por otra parte, el cambio en la codificación ha obligado a traducir los indicad
 ::: {.justify}
 
 Los episodios se asignan al área de residencia del paciente y se computan con independencia del hospital, área o comunidad autónoma en la que se produce la hospitalización. De esta manera, el análisis realizado compara la exposición de las poblaciones a la asistencia sanitaria según su lugar de residencia, antes que las pautas de ingreso de los hospitales (i.e., propensión a hospitalización), aunque unas y otras están asociadas.
-La población utilizada en la estandarización y cálculo de los denominadores de los indicadores procede de la actualización anual de los padrones municipales publicados por el Instituto Nacional de Estadística (INE) entre los años 2003 a 2022.
+La población utilizada en la estandarización y cálculo de los denominadores de los indicadores procede de la actualización anual de los padrones municipales publicados por el Instituto Nacional de Estadística (INE) entre los años 2003 a 2023.
 
 
 :::
@@ -1612,15 +1948,11 @@ La unidad de análisis en este informe son las áreas sanitarias de referencia s
 ### Sobre los resultados analizados
 
 ::: {.justify}
-Este informe se centra en el cálculo de las tasas estandarizadas para cada proceso tomando como referencia la población española (por sexo y grupo de quinquenal de edad) para cada año en el periodo de estudio.
+Este informe se centra en el cálculo de las tasas estandarizadas para cada proceso tomando como referencia la población española (por sexo y grupo quinquenal de edad) para cada año en el periodo de estudio.
 
 :::
 
 
-## Contribuciones
-
-
-## Referencias
 
 
 
